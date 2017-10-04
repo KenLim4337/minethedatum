@@ -1,12 +1,25 @@
 # Event classification method from support code
 def event_classification(document):
     classification = None
-    feature_eventmap_dict = {'forumread': '/discussion/forum/', 'forumcommentread': '/discussion/comments/',
-                             'videoplay': 'play_video', 'videopause': 'pause_video', 'videostop': 'stop_video',
-                             'videoseek': 'seek_video', 'videospeedchange': 'speed_change_video',
-                             'forumsearch': 'discussion/forum/search', 'checkprogress': 'progress',
-                             'videoload': 'load_video'
-                            }
+    feature_eventmap_dict = {'forumread': '/discussion/forum/',
+                             'forumcommentread': '/discussion/comments/',
+                             'forumsearch': 'discussion/forum/search',
+                             'forumcreate': 'forum.thread.created',
+                             'videoplay': 'play_video',
+                             'videopause': 'pause_video',
+                             'videostop': 'stop_video',
+                             'videoseek': 'seek_video',
+                             'videospeedchange': 'speed_change_video',
+                             'videoload': 'load_video',
+                             'checkprogress': 'progress',
+                             'transcripthide': 'hide_transcript',
+                             'transcriptshow': 'show_transcript',
+                             'pageclose': 'page_close',
+                             'problemgraded': 'problem_grade',
+                             'problemcheck': 'problem_check',
+                             'problemsave': 'problem_save',
+                             'problemshow': 'problem_show'
+    }
 
     # Initial classification using the event type
     for key in feature_eventmap_dict:
@@ -27,13 +40,12 @@ def event_classification(document):
     return classification
 
 # Just printing stuff for now
-def report_session(userid, ipaddr, events_in_session):
+def report_session(userid, events_in_session):
     print('----------------------------------------')
     print(userid)
-    print(ipaddr)
     print(events_in_session)
-    print(events_in_session[len(events_in_session)-1][0] - events_in_session[0][0])
-
+    session_length = events_in_session[len(events_in_session)-1][0] - events_in_session[0][0]
+    print(session_length)
 
 
 from pymongo import MongoClient
@@ -46,15 +58,14 @@ client = MongoClient()
 dbname = 'think101x2016'
 db = client[dbname]
 
-"""
+# Initialise collection "session" to store the session data to mongodb
 if 'session' not in db.collection_names():
     db.create_collection('session')
-"""
 
 cursor = db.clickstream.find()
 cnt = 1
 
-# Aggregate events into userid,ipaddr
+# Aggregate events into userid
 student_event_map = {}
 for document in cursor:
     #print document;
@@ -63,12 +74,11 @@ for document in cursor:
 
     if event_type:
         userid = document['context']['user_id']
-        ipaddr = document['ip']
 
-        if ( userid,ipaddr ) not in student_event_map:
-            student_event_map[userid, ipaddr] = []
+        if userid not in student_event_map:
+            student_event_map[userid] = []
 
-        student_event_map[userid, ipaddr].append((parser.parse(document['time']), event_type))
+        student_event_map[userid].append((parser.parse(document['time']), event_type))
 
         # only read 1000 events for testing
         cnt += 1
@@ -81,7 +91,7 @@ new_session_threshold = timedelta(minutes=40)
 
 # For each userid,ipaddr
 for key in student_event_map.keys():
-    userid,ipaddr = key
+    userid = key
 
     # Sort the events in ascending order of time
     student_event_map[key].sort()
@@ -95,5 +105,5 @@ for key in student_event_map.keys():
             events_in_session.append(student_event_map[key][i])
         else:
             # Report the events in the current session list as a separate session, continue with a new list of events
-            report_session(userid, ipaddr, events_in_session)
+            report_session(userid, events_in_session)
             events_in_session = [student_event_map[key][i]]
