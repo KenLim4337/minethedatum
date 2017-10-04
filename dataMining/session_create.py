@@ -42,17 +42,20 @@ cursor = db.clickstream.find()
 cnt = 1
 
 # Aggregate events into userid,ipaddr
-thing = {}
+student_event_map = {}
 for document in cursor:
+    #print document;
+    #Retrieve event classification from event_type field
     event_type = event_classification(document['event_type'])
+
     if event_type:
         userid = document['context']['user_id']
         ipaddr = document['ip']
 
-        if ( userid,ipaddr ) not in thing:
-            thing[userid,ipaddr] = []
+        if ( userid,ipaddr ) not in student_event_map:
+            student_event_map[userid, ipaddr] = []
 
-        thing[userid,ipaddr].append(( parser.parse(document['time']),event_type ))
+        student_event_map[userid, ipaddr].append((parser.parse(document['time']), event_type))
 
         # only read 1000 events for testing
         cnt += 1
@@ -60,24 +63,24 @@ for document in cursor:
             break
 
 
-# Set threshold as 1 hour
-new_session_threshold = timedelta(hours=1)
+# Set session threshold as 40 minutes
+new_session_threshold = timedelta(minutes=40)
 
 # For each userid,ipaddr
-for key in thing.keys():
+for key in student_event_map.keys():
     userid,ipaddr = key
 
     # Sort the events in ascending order of time
-    thing[key].sort()
+    student_event_map[key].sort()
 
     # Initialise a list to contain the events in each session
-    events_in_session = [ thing[key][0] ]
-    for i in range(1, len(thing[key])):
-        t_diff = thing[key][i][0] - thing[key][i-1][0]
+    events_in_session = [student_event_map[key][0]]
+    for i in range(1, len(student_event_map[key])):
+        t_diff = student_event_map[key][i][0] - student_event_map[key][i - 1][0]
         if t_diff < new_session_threshold:
             # Append to the current session if the delta between the events is less than the threshold
-            events_in_session.append(thing[key][i])
+            events_in_session.append(student_event_map[key][i])
         else:
             # Report the events in the current session list as a separate session, continue with a new list of events
             report_session(userid, ipaddr, events_in_session)
-            events_in_session = [ thing[key][i] ]
+            events_in_session = [student_event_map[key][i]]
