@@ -1,25 +1,27 @@
+feature_eventmap_dict = {
+        'forumread': '/discussion/forum/',
+        'forumcommentread': '/discussion/comments/',
+        'forumsearch': 'discussion/forum/search',
+        'forumcreate': 'forum.thread.created',
+        'videoplay': 'play_video',
+        'videopause': 'pause_video',
+        'videostop': 'stop_video',
+        'videoseek': 'seek_video',
+        'videospeedchange': 'speed_change_video',
+        'videoload': 'load_video',
+        'checkprogress': 'progress',
+        'transcripthide': 'hide_transcript',
+        'transcriptshow': 'show_transcript',
+        'pageclose': 'page_close',
+        'problemgraded': 'problem_grade',
+        'problemcheck': 'problem_check',
+        'problemsave': 'problem_save',
+        'problemshow': 'problem_show'
+}
+
 # Event classification method from support code
 def event_classification(document):
     classification = None
-    feature_eventmap_dict = {'forumread': '/discussion/forum/',
-                             'forumcommentread': '/discussion/comments/',
-                             'forumsearch': 'discussion/forum/search',
-                             'forumcreate': 'forum.thread.created',
-                             'videoplay': 'play_video',
-                             'videopause': 'pause_video',
-                             'videostop': 'stop_video',
-                             'videoseek': 'seek_video',
-                             'videospeedchange': 'speed_change_video',
-                             'videoload': 'load_video',
-                             'checkprogress': 'progress',
-                             'transcripthide': 'hide_transcript',
-                             'transcriptshow': 'show_transcript',
-                             'pageclose': 'page_close',
-                             'problemgraded': 'problem_grade',
-                             'problemcheck': 'problem_check',
-                             'problemsave': 'problem_save',
-                             'problemshow': 'problem_show'
-    }
 
     # Initial classification using the event type
     for key in feature_eventmap_dict:
@@ -39,19 +41,34 @@ def event_classification(document):
 
     return classification
 
-# Just printing stuff for now
-def report_session(userid, events_in_session):
-    print('----------------------------------------')
-    print(userid)
-    print(events_in_session)
-    session_length = events_in_session[len(events_in_session)-1][0] - events_in_session[0][0]
-    print(session_length)
 
+# Just printing stuff for now
+def report_session(collection, userid, events_in_session):
+    session_duration = events_in_session[len(events_in_session)-1][0] - events_in_session[0][0]
+
+    # Initialise count for each event to 0
+    events = {}
+    for event_type in feature_eventmap_dict:
+        events[event_type] = 0
+
+    # Count each event into events dict
+    for event in events_in_session:
+        events[event[1]] += 1
+
+    # Just do single insert events cus ceebs
+    collection.insert_one({
+        'userid': userid,
+        'session_duration': session_duration.total_seconds(),
+        'events': events
+    })
+
+import sys
+import json
 
 from pymongo import MongoClient
 from dateutil import parser
 from datetime import timedelta
-import json
+
 
 # Setup connection to DB
 client = MongoClient()
@@ -59,9 +76,11 @@ dbname = 'think101x2016'
 db = client[dbname]
 
 # Initialise collection "session" to store the session data to mongodb
-if 'session' not in db.collection_names():
-    db.create_collection('session')
+if 'session' in db.collection_names():
+    db.drop_collection('session')
+db.create_collection('session')
 
+# Use reducedClickstream if available
 cursor = db.clickstream.find()
 cnt = 1
 
@@ -69,7 +88,7 @@ cnt = 1
 student_event_map = {}
 for document in cursor:
     #print document;
-    #Retrieve event classification from event_type field
+    #Retrieve event classification from document
     event_type = event_classification(document)
 
     if event_type:
@@ -80,11 +99,8 @@ for document in cursor:
 
         student_event_map[userid].append((parser.parse(document['time']), event_type))
 
-        # only read 1000 events for testing
-        cnt += 1
-        if cnt == 1000:
-            break
-
+print(sys.getsizeof(student_event_map))
+print('Finished reading events into memory')
 
 # Set session threshold as 40 minutes
 new_session_threshold = timedelta(minutes=40)
@@ -93,7 +109,7 @@ new_session_threshold = timedelta(minutes=40)
 for key in student_event_map.keys():
     userid = key
 
-    # Sort the events in ascending order of time
+    # Sort the events in chronological order
     student_event_map[key].sort()
 
     # Initialise a list to contain the events in each session
@@ -105,5 +121,5 @@ for key in student_event_map.keys():
             events_in_session.append(student_event_map[key][i])
         else:
             # Report the events in the current session list as a separate session, continue with a new list of events
-            report_session(userid, events_in_session)
+            report_session(db.session, userid, events_in_session)
             events_in_session = [student_event_map[key][i]]
