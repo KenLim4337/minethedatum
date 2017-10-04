@@ -1,5 +1,5 @@
 # Event classification method from support code
-def event_classification(event):
+def event_classification(document):
     classification = None
     feature_eventmap_dict = {'forumread': '/discussion/forum/', 'forumcommentread': '/discussion/comments/',
                              'videoplay': 'play_video', 'videopause': 'pause_video', 'videostop': 'stop_video',
@@ -7,10 +7,23 @@ def event_classification(event):
                              'forumsearch': 'discussion/forum/search', 'checkprogress': 'progress',
                              'videoload': 'load_video'
                             }
+
+    # Initial classification using the event type
     for key in feature_eventmap_dict:
-        if  feature_eventmap_dict[key] in event:
+        if  feature_eventmap_dict[key] in document['event_type']:
             classification = key
             break
+
+    # Further classification using the data in document['event']
+    event = document['event']
+    if classification == 'seek_video' and ('old_time' in event and 'new_time' in event):
+        if event['new_time'] > event['old_time']:
+            # Set the event classification as a forward seek if the new time is greater than the old time
+            classification = 'videoseek_forward'
+        else:
+            # Else set as backward seek
+            classification = 'videoseek_backward'
+
     return classification
 
 # Just printing stuff for now
@@ -46,7 +59,7 @@ student_event_map = {}
 for document in cursor:
     #print document;
     #Retrieve event classification from event_type field
-    event_type = event_classification(document['event_type'])
+    event_type = event_classification(document)
 
     if event_type:
         userid = document['context']['user_id']
