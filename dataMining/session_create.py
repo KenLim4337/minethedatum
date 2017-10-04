@@ -19,6 +19,10 @@ feature_eventmap_dict = {
         'problemshow': 'problem_show'
 }
 
+event_type_list = list(feature_eventmap_dict.keys())
+event_type_list.remove('videoseek')
+event_type_list.extend(['videoseek_forward', 'videoseek_backward'])
+
 # Event classification method from support code
 def event_classification(document):
     classification = None
@@ -30,14 +34,20 @@ def event_classification(document):
             break
 
     # Further classification using the data in document['event']
+    # Apparently there are different formats for document['event']: dict, str (json), str (query params)
     event = document['event']
-    if classification == 'seek_video' and ('old_time' in event and 'new_time' in event):
-        if event['new_time'] > event['old_time']:
-            # Set the event classification as a forward seek if the new time is greater than the old time
-            classification = 'videoseek_forward'
-        else:
-            # Else set as backward seek
-            classification = 'videoseek_backward'
+    if type(event) == str:
+        try:
+            event = json.loads(event)
+            if classification == 'videoseek' and ('old_time' in event and 'new_time' in event):
+                if event['new_time'] > event['old_time']:
+                    # Set the event classification as a forward seek if the new time is greater than the old time
+                    classification = 'videoseek_forward'
+                else:
+                    # Else set as backward seek
+                    classification = 'videoseek_backward'
+        except: # Weird string, ignore if json loads fails
+            pass
 
     return classification
 
@@ -48,7 +58,7 @@ def report_session(collection, userid, events_in_session):
 
     # Initialise count for each event to 0
     events = {}
-    for event_type in feature_eventmap_dict:
+    for event_type in event_type_list:
         events[event_type] = 0
 
     # Count each event into events dict
@@ -98,6 +108,7 @@ for document in cursor:
             student_event_map[userid] = []
 
         student_event_map[userid].append((parser.parse(document['time']), event_type))
+
 
 print(sys.getsizeof(student_event_map))
 print('Finished reading events into memory')
