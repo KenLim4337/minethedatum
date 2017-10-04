@@ -36,18 +36,21 @@ def event_classification(document):
     # Further classification using the data in document['event']
     # Apparently there are different formats for document['event']: dict, str (json), str (query params)
     event = document['event']
-    if type(event) == str:
-        try:
-            event = json.loads(event)
-            if classification == 'videoseek' and ('old_time' in event and 'new_time' in event):
-                if event['new_time'] > event['old_time']:
-                    # Set the event classification as a forward seek if the new time is greater than the old time
-                    classification = 'videoseek_forward'
-                else:
-                    # Else set as backward seek
-                    classification = 'videoseek_backward'
-        except: # Weird string, ignore if json loads fails
-            pass
+    if classification == 'videoseek':
+        if type(event) == str:
+            try:
+                event = json.loads(event)
+                if 'old_time' in event and 'new_time' in event:
+                    if event['new_time'] > event['old_time']:
+                        # Set the event classification as a forward seek if the new time is greater than the old time
+                        return 'videoseek_forward'
+                    else:
+                        # Else set as backward seek
+                        return 'videoseek_backward'
+            except:
+                pass
+        # "videoseek" must be forward or backward
+        return None
 
     return classification
 
