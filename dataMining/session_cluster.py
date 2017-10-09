@@ -8,9 +8,10 @@ from sklearn.manifold import TSNE
 from sklearn import preprocessing
 from sklearn.cluster import KMeans
 import numpy as np
-import bokeh.plotting as bp
-from bokeh.plotting import figure, output_notebook, show, ColumnDataSource, output_file
-from bokeh.models import HoverTool
+import matplotlib.pyplot as plt
+from SilhouettePlots import silhouette_plots
+from ElbowMethod import elbow_method
+from plot_clusters import plot_k3,plot_k5
 
 
 
@@ -65,9 +66,25 @@ for document in cursor:
 min_max_scaler = preprocessing.MinMaxScaler();
 #fails because its a dictonary ?
 x_normalized = min_max_scaler.fit_transform(feature_matrix);
-k = 15
-#initialize K-means
-km = KMeans(k);
-clusters = km.fit_predict(x_normalized);
+#run elbow method to find possible k
+#elbow_method(x_normalized)
+#Function to plot the clusters
+
+
+# run Kmeans for both k = 3, k=4 & k = 5
+# discard one later on
+km_3 = KMeans(3);
+clusters_3 = km_3.fit_predict(x_normalized);
+
+plot_k3(x_normalized,clusters_3,km_3.cluster_centers_)
+#run for 5
+km_5 = KMeans(5);
+clusters_5 = km_5.fit_predict(x_normalized)
+plot_k5(x_normalized,clusters_5,km_5.cluster_centers_)
+
+# #run silhouette plots on both to determine which is best
+# silhouette_plots(x_normalized[0:30000],5) running only on 30000 items as the dataset is too big !
+# silhouette_plots(x_normalized[30000:30000+30000],3)
+
 
 
