@@ -54,13 +54,13 @@ def plot_k5(x_normalized, clusters, cluster_centers):
     plt.scatter(x_normalized[clusters == 3, 0],
                 x_normalized[clusters == 3, 1],
                 s=50, c='lightred',
-                marker='v', edgecolor='black',
+                marker='.', edgecolor='black',
                 label='cluster 4')
 
     plt.scatter(x_normalized[clusters == 4, 0],
                 x_normalized[clusters == 4, 1],
                 s=50, c='yellow',
-                marker='v', edgecolor='black',
+                marker='^', edgecolor='black',
                 label='cluster 5')
 
     plt.scatter(cluster_centers[:, 0],
