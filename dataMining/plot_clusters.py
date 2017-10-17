@@ -78,9 +78,14 @@ def plot_k5(x_normalized, clusters, cluster_centers):
 
 
 def plot_centroids(cluster_centers, labels):
-    plt.plot(np.arange(0, 20), cluster_centers)
+    plt.plot(np.arange(0, 20), cluster_centers[:, 0], label = 'Cluster 1')
+    plt.plot(np.arange(0, 20), cluster_centers[:, 1], label = 'Cluster 2')
+    plt.plot(np.arange(0, 20), cluster_centers[:, 2], label = 'Cluster 3')
+    plt.plot(np.arange(0, 20), cluster_centers[:, 3], label = 'Cluster 4')
+    plt.plot(np.arange(0, 20), cluster_centers[:, 4], label = 'Cluster 5')
+    plt.legend()
     plt.grid()
-    plt.xticks(np.arange(0, 20), labels, rotation='vertical')
+    plt.xticks(np.arange(0, 20), labels, rotation=70)
     plt.tight_layout()
     # plt.savefig('images/11_02.png', dpi=300)
     plt.show()
