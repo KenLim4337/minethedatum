@@ -43,8 +43,15 @@ feature_eventmap_dict = {
         'sessionduration': 'session_duration'
 }
 
-cursor = db.sessions.find({"session_duration":{"$gt":0.0}},{"_id":0,"userid":0})
-length = db.sessions.count();
+cursor = db.sessions.find(
+    {
+        "session_duration":{"$gt" : 0.0},
+        "userid" : {"$ne" : ""},
+        "userid" : {"$ne" : "null"}
+    },
+    {"_id" : 0}
+)
+length = cursor.count();
 if (length == 0):
     raise ValueError('Collection used has no entries. \
         Perhaps you don\'t have the correct collection')
@@ -55,34 +62,42 @@ feature_matrix = np.zeros(shape=(length,len(feature_eventmap_dict)))#np.empty((l
 count =0
 
 correct_order = None
+student_feature_list = []
 
 for document in cursor:
-    events_dict = document["events"]
-    events_dict["session_duration"] = document["session_duration"]
-    if correct_order is None:
-        correct_order = list(events_dict)
-        print(correct_order)
-    #print(np.array(events_dict.values()))
-    # print(document)
-    # print(list(events_dict))
-    '''
-    Python3 vs Python2
-    '''
-    feature_matrix[count,:]=np.array(list(events_dict.values()))
-    # feature_matrix[count,:]=np.array(events_dict.values())
-    #np.vstack((feature_matrix,np.array(events_dict.values())))
-    count = count+1
-    # if(count == 10):
-    #     break
+    if document["userid"]:
+        events_dict = document["events"]
+        events_dict["session_duration"] = document["session_duration"]
+        if correct_order is None:
+            correct_order = list(events_dict)
+            print(correct_order)
+        #print(np.array(events_dict.values()))
+        # print(document)
+        # print(list(events_dict))
+        '''
+        Python3 vs Python2
+        '''
+        feature_matrix[count,:]=np.array(list(events_dict.values()))
+        student_feature_list.append(document["userid"])
+        # feature_matrix[count,:]=np.array(events_dict.values())
+        #np.vstack((feature_matrix,np.array(events_dict.values())))
+        count = count+1
+        # if(count == 10):
+        #     break
+    else:
+        # do nothing
+        continue
 
-# print(feature_matrix)
+print(len(student_feature_list))
+feature_matrix = feature_matrix[~np.all(feature_matrix == 0, axis=1)]
+print(len(feature_matrix))
 #define the number of clusters to find
 
 min_max_scaler = preprocessing.MinMaxScaler();
 #fails because its a dictonary ?
 x_normalized = min_max_scaler.fit_transform(feature_matrix);
 #run elbow method to find possible k
-#elbow_method(x_normalized)
+# elbow_method(x_normalized)
 #Function to plot the clusters
 
 
@@ -98,8 +113,20 @@ clusters_5 = km_5.fit_predict(x_normalized)
 print(km_5.cluster_centers_)
 # plot_k5(x_normalized,clusters_5,km_5.cluster_centers_)
 
+print(len(clusters_5))
+
+student_cluster = {}
+for index, student in enumerate(student_feature_list):
+    if student not in student_cluster:
+        student_cluster[student] = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+    student_cluster[student][clusters_5[index]] += 1
+
+print(student_cluster)
+
+
+
 plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
 
 # #run silhouette plots on both to determine which is best
-# silhouette_plots(x_normalized[0:30000],5) running only on 30000 items as the dataset is too big !
+# silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
 # silhouette_plots(x_normalized[30000:30000+30000],3)
