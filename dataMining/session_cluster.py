@@ -53,8 +53,8 @@ cursor = db.sessions.find(
 )
 length = cursor.count();
 if (length == 0):
-    raise ValueError('Collection used has no entries. \
-        Perhaps you don\'t have the correct collection')
+    raise ValueError('Collection used has no entries. ' +
+        'Perhaps you don\'t have the correct collection')
 print(length)
 print(len(feature_eventmap_dict))
 feature_matrix = np.zeros(shape=(length,len(feature_eventmap_dict)))#np.empty((length,len(feature_eventmap_dict)+1), float)
