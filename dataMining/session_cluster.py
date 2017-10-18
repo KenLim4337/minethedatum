@@ -51,9 +51,22 @@ cursor = db.sessions.find(
     },
     {"_id" : 0}
 )
+
+results = db.results.find()
+# Check that the collection we require is present and there are no issues
+if (results.count == 0):
+    raise ValueError('Results collection has no entries. ' +
+        'Perhaps you don\'t have the correct collection')
+
+# Prepare a dictionary of the grade each student received
+grades = {}
+for grade in results:
+    grades[grade["user_id"]] = grade["percent_grade"]
+
 length = cursor.count();
+# Check that the collection we require is present and there are no issues
 if (length == 0):
-    raise ValueError('Collection used has no entries. ' +
+    raise ValueError('Sessions collection has no entries. ' +
         'Perhaps you don\'t have the correct collection')
 print(length)
 print(len(feature_eventmap_dict))
@@ -118,11 +131,23 @@ print(len(clusters_5))
 student_cluster = {}
 for index, student in enumerate(student_feature_list):
     if student not in student_cluster:
-        student_cluster[student] = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+        if student in grades:
+            student_cluster[student] = {
+                0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": grades[student]}
+        else:
+            student_cluster[student] = {
+                0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": None}
     student_cluster[student][clusters_5[index]] += 1
 
-print(student_cluster)
+# print(student_cluster)
 
+high_ach = []
+for student in student_cluster:
+    clusters = student_cluster[student]
+    if clusters["result"] is not None and clusters["result"] >= 0.8:
+        high_ach.append(clusters)
+
+print(high_ach)
 
 
 plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
