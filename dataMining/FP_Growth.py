@@ -22,18 +22,18 @@ def FPtree_construction(student_clusters,min_sup):
     frequent_1itemsets = []
     for cluster in count_dict.keys():
         cluster_sup = float(count_dict[cluster])/count
-        print("",cluster,cluster_sup)
+        # print("",cluster,cluster_sup)
         if(cluster_sup > min_sup):
             #append the key (cluster) and its sup to the list
             frequent_1itemsets.append((cluster,cluster_sup))
     #sort the list by sup in descending order (wihtout reverse it will be in ascending order)
     frequent_1itemsets.sort(key = sort_by_sup, reverse= True)
     #make sure its correct
-    print("Frequend items {}".format(frequent_1itemsets))
+    print("Frequend items {} at min_sup {}".format(frequent_1itemsets, min_sup))
     #remove the sups from frequent_1itemsets
     frequent_1itemsets = [items[0] for items in frequent_1itemsets]
     #make sure its correct
-    print(frequent_1itemsets)
+    # print(frequent_1itemsets)
     #create root node
     root = FP_Node(None,0,[],None)
     for clusters in student_clusters:
