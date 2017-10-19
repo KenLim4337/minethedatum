@@ -22,7 +22,7 @@ def FPtree_construction(student_clusters,min_sup):
     frequent_1itemsets = []
     for cluster in count_dict.keys():
         cluster_sup = float(count_dict[cluster])/count
-        # print("",cluster,cluster_sup)
+        print("Cluster: {} Support: {}".format(cluster,cluster_sup))
         if(cluster_sup > min_sup):
             #append the key (cluster) and its sup to the list
             frequent_1itemsets.append((cluster,cluster_sup))
