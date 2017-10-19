@@ -162,12 +162,11 @@ for student in student_cluster:
     if clusters["result"] is not None and clusters["result"] >= 0.8:
         high_ach.append(clusters)
         high_ach_ordered_list.append(clusters_ordered_list)
-#
 # print(high_ach)
 # print(high_ach_ordered_list)
 
-#build FP_Tree
-FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
+#build FP_Tree the min_sup that works is 50% which is way too low
+root = FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
 
 # plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
 # plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)

@@ -44,6 +44,7 @@ def FPtree_construction(student_clusters,min_sup):
         if(len(filtered_clusters)>0):
             root.insert(filtered_clusters)
 
+    return root
 
 
 def sort_by_sup(item):
