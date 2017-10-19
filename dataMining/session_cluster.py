@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from SilhouettePlots import silhouette_plots
 from ElbowMethod import elbow_method
 from plot_clusters import plot_k3,plot_k5,plot_centroids
+from FP_Growth import *
 
 
 
@@ -161,10 +162,12 @@ for student in student_cluster:
     if clusters["result"] is not None and clusters["result"] >= 0.8:
         high_ach.append(clusters)
         high_ach_ordered_list.append(clusters_ordered_list)
+#
+# print(high_ach)
+# print(high_ach_ordered_list)
 
-print(high_ach)
-print(high_ach_ordered_list)
-
+#build FP_Tree
+FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
 
 # plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
 # plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
