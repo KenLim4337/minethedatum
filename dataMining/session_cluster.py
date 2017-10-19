@@ -68,8 +68,8 @@ length = cursor.count();
 if (length == 0):
     raise ValueError('Sessions collection has no entries. ' +
         'Perhaps you don\'t have the correct collection')
-print(length)
-print(len(feature_eventmap_dict))
+# print(length)
+# print(len(feature_eventmap_dict))
 feature_matrix = np.zeros(shape=(length,len(feature_eventmap_dict)))#np.empty((length,len(feature_eventmap_dict)+1), float)
 #print(feature_matrix)
 count =0
@@ -101,9 +101,9 @@ for document in cursor:
         # do nothing
         continue
 
-print(len(student_feature_list))
+# print(len(student_feature_list))
 feature_matrix = feature_matrix[~np.all(feature_matrix == 0, axis=1)]
-print(len(feature_matrix))
+# print(len(feature_matrix))
 #define the number of clusters to find
 
 min_max_scaler = preprocessing.MinMaxScaler();
@@ -121,36 +121,53 @@ x_normalized = min_max_scaler.fit_transform(feature_matrix);
 #
 # plot_k3(x_normalized,clusters_3,km_3.cluster_centers_)
 #run for 5
-km_5 = KMeans(5);
-clusters_5 = km_5.fit_predict(x_normalized)
-print(km_5.cluster_centers_)
+# km_5 = KMeans(5);
+# clusters_5 = km_5.fit_predict(x_normalized)
+# print(km_5.cluster_centers_)
 # plot_k5(x_normalized,clusters_5,km_5.cluster_centers_)
 
-print(len(clusters_5))
+#run for 4
+km_4 = KMeans(4);
+clusters_4 = km_4.fit_predict(x_normalized)
+
+# print(len(clusters_5))
+# print(len(clusters_4))
 
 student_cluster = {}
+#student_cluster_ordered_list dictionary containing a dictionary of a grade and clusters for each student
+#In the inner dictionary the clusters is an ordered list of clusters for that student in time
+student_cluster_ordered_list = {}
 for index, student in enumerate(student_feature_list):
     if student not in student_cluster:
         if student in grades:
             student_cluster[student] = {
                 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": grades[student]}
+            student_cluster_ordered_list[student] = {"result":grades[student],"clusters":[]}
+
         else:
             student_cluster[student] = {
                 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": None}
-    student_cluster[student][clusters_5[index]] += 1
+            student_cluster_ordered_list[student]={"result":None,"clusters":[]}
+    student_cluster[student][clusters_4[index]] += 1
+    student_cluster_ordered_list[student]["clusters"].append(clusters_4[index])
 
 # print(student_cluster)
-
+# print(student_cluster_ordered_list)
 high_ach = []
+high_ach_ordered_list =[]
 for student in student_cluster:
     clusters = student_cluster[student]
+    clusters_ordered_list = student_cluster_ordered_list[student]
     if clusters["result"] is not None and clusters["result"] >= 0.8:
         high_ach.append(clusters)
+        high_ach_ordered_list.append(clusters_ordered_list)
 
 print(high_ach)
+print(high_ach_ordered_list)
 
 
-plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
+# plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
+# plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
 
 # #run silhouette plots on both to determine which is best
 # silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
