@@ -117,12 +117,6 @@ x_normalized = min_max_scaler.fit_transform(feature_matrix);
 # elbow_method(x_normalized)
 #Function to plot the clusters
 
-<<<<<<< HEAD
-#run for 4
-km_4 = KMeans(4);
-clusters_4 = km_4.fit_predict(x_normalized)
-# print(km_4.cluster_centers_)
-=======
 
 # run Kmeans for both k = 3, k=4 & k = 5
 # discard one later on
@@ -139,10 +133,6 @@ clusters_4 = km_4.fit_predict(x_normalized)
 #run for 4
 km_4 = KMeans(4);
 clusters_4 = km_4.fit_predict(x_normalized)
-
-# print(len(clusters_5))
-# print(len(clusters_4))
->>>>>>> 6e6f3644e492a4ba0ef76419b2670e2b170f2fce
 
 student_cluster = {}
 #student_cluster_ordered_list dictionary containing a dictionary of a grade and clusters for each student
@@ -246,19 +236,19 @@ plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
 
 # print(student_cluster)
 # print(student_cluster_ordered_list)
-high_ach = []
-high_ach_ordered_list =[]
-for student in student_cluster:
-    clusters = student_cluster[student]
-    clusters_ordered_list = student_cluster_ordered_list[student]
-    if clusters["result"] is not None and clusters["result"] >= 0.8:
-        high_ach.append(clusters)
-        high_ach_ordered_list.append(clusters_ordered_list)
-# print(high_ach)
-# print(high_ach_ordered_list)
-
-#build FP_Tree the min_sup that works is 50% which is way too low
-root = FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
+# high_ach = []
+# high_ach_ordered_list =[]
+# for student in student_cluster:
+#     clusters = student_cluster[student]
+#     clusters_ordered_list = student_cluster_ordered_list[student]
+#     if clusters["result"] is not None and clusters["result"] >= 0.8:
+#         high_ach.append(clusters)
+#         high_ach_ordered_list.append(clusters_ordered_list)
+# # print(high_ach)
+# # print(high_ach_ordered_list)
+#
+# #build FP_Tree the min_sup that works is 50% which is way too low
+# root = FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
 
 # #run silhouette plots on both to determine which is best
 # silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
