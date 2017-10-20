@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from SilhouettePlots import silhouette_plots
 from ElbowMethod import elbow_method
 from plot_clusters import plot_k3,plot_k5,plot_centroids
-<<<<<<< HEAD
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_validate
@@ -20,11 +19,7 @@ from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.metrics.scorer import make_scorer
 from sklearn.metrics import recall_score
 import random
-=======
 from FP_Growth import *
-
-
->>>>>>> 6e6f3644e492a4ba0ef76419b2670e2b170f2fce
 
 # Setup connection to DB
 client = MongoClient()
