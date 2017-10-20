@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from SilhouettePlots import silhouette_plots
 from ElbowMethod import elbow_method
 from plot_clusters import plot_k3,plot_k5,plot_centroids
+<<<<<<< HEAD
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_validate
@@ -19,6 +20,11 @@ from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.metrics.scorer import make_scorer
 from sklearn.metrics import recall_score
 import random
+=======
+from FP_Growth import *
+
+
+>>>>>>> 6e6f3644e492a4ba0ef76419b2670e2b170f2fce
 
 # Setup connection to DB
 client = MongoClient()
@@ -73,8 +79,8 @@ length = cursor.count();
 if (length == 0):
     raise ValueError('Sessions collection has no entries. ' +
         'Perhaps you don\'t have the correct collection')
-print(length)
-print(len(feature_eventmap_dict))
+# print(length)
+# print(len(feature_eventmap_dict))
 feature_matrix = np.zeros(shape=(length,len(feature_eventmap_dict)))#np.empty((length,len(feature_eventmap_dict)+1), float)
 #print(feature_matrix)
 count =0
@@ -116,21 +122,51 @@ x_normalized = min_max_scaler.fit_transform(feature_matrix);
 # elbow_method(x_normalized)
 #Function to plot the clusters
 
+<<<<<<< HEAD
 #run for 4
 km_4 = KMeans(4);
 clusters_4 = km_4.fit_predict(x_normalized)
 # print(km_4.cluster_centers_)
+=======
+
+# run Kmeans for both k = 3, k=4 & k = 5
+# discard one later on
+# km_3 = KMeans(3);
+# clusters_3 = km_3.fit_predict(x_normalized);
+#
+# plot_k3(x_normalized,clusters_3,km_3.cluster_centers_)
+#run for 5
+# km_5 = KMeans(5);
+# clusters_5 = km_5.fit_predict(x_normalized)
+# print(km_5.cluster_centers_)
+# plot_k5(x_normalized,clusters_5,km_5.cluster_centers_)
+
+#run for 4
+km_4 = KMeans(4);
+clusters_4 = km_4.fit_predict(x_normalized)
+
+# print(len(clusters_5))
+# print(len(clusters_4))
+>>>>>>> 6e6f3644e492a4ba0ef76419b2670e2b170f2fce
 
 student_cluster = {}
+#student_cluster_ordered_list dictionary containing a dictionary of a grade and clusters for each student
+#In the inner dictionary the clusters is an ordered list of clusters for that student in time
+student_cluster_ordered_list = {}
 for index, student in enumerate(student_feature_list):
     if student not in student_cluster:
         if student in grades:
             student_cluster[student] = {
-                0: 0, 1: 0, 2: 0, 3: 0, "result": grades[student]}
+
+                0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": grades[student]}
+            student_cluster_ordered_list[student] = {"result":grades[student],"clusters":[]}
+
         else:
             student_cluster[student] = {
-                0: 0, 1: 0, 2: 0, 3: 0, "result": None}
+                0: 0, 1: 0, 2: 0, 3: 0, 4: 0, "result": None}
+            student_cluster_ordered_list[student]={"result":None,"clusters":[]}
     student_cluster[student][clusters_4[index]] += 1
+    student_cluster_ordered_list[student]["clusters"].append(clusters_4[index])
 
 # print(student_cluster)
 
@@ -212,6 +248,22 @@ print("Recall: {0}%".format(np.mean(scores['test_rec_micro'] * 100)))
 print(' ', flush=True)
 
 plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
+
+# print(student_cluster)
+# print(student_cluster_ordered_list)
+high_ach = []
+high_ach_ordered_list =[]
+for student in student_cluster:
+    clusters = student_cluster[student]
+    clusters_ordered_list = student_cluster_ordered_list[student]
+    if clusters["result"] is not None and clusters["result"] >= 0.8:
+        high_ach.append(clusters)
+        high_ach_ordered_list.append(clusters_ordered_list)
+# print(high_ach)
+# print(high_ach_ordered_list)
+
+#build FP_Tree the min_sup that works is 50% which is way too low
+root = FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
 
 # #run silhouette plots on both to determine which is best
 # silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
