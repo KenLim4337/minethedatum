@@ -5,7 +5,7 @@ items is a list of ordered clusters list from each student i.e
 [[0,1,0,0,0,2,3,0,0,1],[0,1,2,3],...,[0,1,3,0,0,0,0,0,0,1,2]]
 """
 def FPtree_construction(student_clusters,min_sup):
-    print(student_clusters)
+    #print(student_clusters)
     #general count of clusters
     count =0
     #count dict for each type of cluster

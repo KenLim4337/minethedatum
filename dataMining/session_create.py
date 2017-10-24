@@ -55,7 +55,7 @@ def event_classification(document):
     return classification
 
 
-# Just printing stuff for now
+
 def report_session(collection, userid, events_in_session):
     session_duration = events_in_session[len(events_in_session)-1][0] - events_in_session[0][0]
 
@@ -68,7 +68,7 @@ def report_session(collection, userid, events_in_session):
     for event in events_in_session:
         events[event[1]] += 1
 
-    # Just do single insert events cus ceebs
+    # Just do single insert events
     collection.insert_one({
         'userid': userid,
         'session_duration': session_duration.total_seconds(),

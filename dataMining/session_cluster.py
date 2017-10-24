@@ -13,6 +13,9 @@ from SilhouettePlots import silhouette_plots
 from ElbowMethod import elbow_method
 from plot_clusters import plot_k3,plot_k5,plot_centroids
 from FP_Growth import *
+from fp_growth import find_frequent_itemsets
+
+
 
 
 
@@ -84,7 +87,7 @@ for document in cursor:
         events_dict["session_duration"] = document["session_duration"]
         if correct_order is None:
             correct_order = list(events_dict)
-            print(correct_order)
+            #print(correct_order)
         #print(np.array(events_dict.values()))
         # print(document)
         # print(list(events_dict))
@@ -162,14 +165,25 @@ for student in student_cluster:
     if clusters["result"] is not None and clusters["result"] >= 0.8:
         high_ach.append(clusters)
         high_ach_ordered_list.append(clusters_ordered_list)
-# print(high_ach)
-# print(high_ach_ordered_list)
+#print(high_ach)
+#print(len(high_ach_ordered_list))
 
-#build FP_Tree the min_sup that works is 50% which is way too low
-root = FPtree_construction([item['clusters'] for item in high_ach_ordered_list],0.50)
+plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
+
+# # #build FP_Tree the min_sup that works is 50% which is way too low
+cluster_list = [item['clusters'] for item in high_ach_ordered_list]
+# root = FPtree_construction(cluster_list,0.50)
+#print(cluster_list)
+patterns = find_frequent_itemsets(cluster_list,2000,include_support= True )
+
+for items in patterns:
+    print items
+
+
+
 
 # plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
-# plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
+
 
 # #run silhouette plots on both to determine which is best
 # silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
