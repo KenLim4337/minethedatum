@@ -14,10 +14,13 @@ from ElbowMethod import elbow_method
 from plot_clusters import plot_k3,plot_k5,plot_centroids
 from FP_Growth import *
 from fp_growth import find_frequent_itemsets
-
-
-
-
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
+from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics.scorer import make_scorer
+from sklearn.metrics import recall_score
+import random
 
 # Setup connection to DB
 client = MongoClient()
@@ -169,7 +172,15 @@ for student in student_cluster:
 #print(len(high_ach_ordered_list))
 
 plot_centroids(np.transpose(km_4.cluster_centers_), correct_order)
+#For k = 5
+# plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
 
+
+# #run silhouette plots on both to determine which is best
+# silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
+# silhouette_plots(x_normalized[30000:30000+30000],3)
+
+########################################## ASSOCIATION CODE ###########################################################
 # # #build FP_Tree the min_sup that works is 50% which is way too low
 cluster_list = [item['clusters'] for item in high_ach_ordered_list]
 # root = FPtree_construction(cluster_list,0.50)
@@ -182,9 +193,58 @@ for items in patterns:
 
 
 
-# plot_centroids(np.transpose(km_5.cluster_centers_), correct_order)
 
+############################################ CLASSIFICATION CODE #######################################################
 
-# #run silhouette plots on both to determine which is best
-# silhouette_plots(x_normalized[0::5],5) #running only on 30000 items as the dataset is too big !
-# silhouette_plots(x_normalized[30000:30000+30000],3)
+clf = RandomForestClassifier(random_state=255)
+student_features = []
+student_label = []
+incomplete_students = []
+for student in student_cluster:
+    clusters = student_cluster[student]
+    if clusters["result"] is None:
+        incomplete_features = []
+        incomplete_features.append(clusters[0])
+        incomplete_features.append(clusters[1])
+        incomplete_features.append(clusters[2])
+        incomplete_features.append(clusters[3])
+        incomplete_students.append(incomplete_features)
+        continue
+    elif clusters["result"] < 0.5:
+        # Reduce the massive imbalance of low achieving students
+        if random.random() > 0.4:
+            student_label.append("Fail")
+        else:
+            continue
+    elif clusters["result"] < 0.65 and clusters["result"] >= 0.5:
+        student_label.append("Fail")
+    elif clusters["result"] < 0.75 and clusters["result"] >= 0.65:
+        student_label.append("Pass")
+    elif clusters["result"] >= 0.75:
+        student_label.append("Pass")
+    cluster_features = []
+    cluster_features.append(clusters[0])
+    cluster_features.append(clusters[1])
+    cluster_features.append(clusters[2])
+    cluster_features.append(clusters[3])
+    student_features.append(cluster_features)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    np.array(student_features), np.array(student_label), test_size=0.25, random_state=255)
+
+print(X_train)
+print(y_train)
+unique, counts = np.unique(np.array(student_label), return_counts=True)
+print(dict(zip(unique, counts)))
+clf.fit(X_train, y_train)
+predicted = clf.predict(X_test)
+print(score(y_test, predicted))
+
+scoring = {'prec_macro': 'precision_macro',
+    'rec_micro': make_scorer(recall_score, average='macro')}
+scores = cross_validate(clf, np.array(student_features),
+    np.array(student_label), scoring=scoring, cv=10, return_train_score=False)
+print("Precision: {0}%".format(np.mean(scores['test_prec_macro']) * 100))
+print("Recall: {0}%".format(np.mean(scores['test_rec_micro'] * 100)))
+print(' ')# PYTHON 3, flush=True)
+
