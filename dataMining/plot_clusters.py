@@ -81,10 +81,7 @@ def plot_centroids(cluster_centers, labels):
     plt.plot(np.arange(0, 20), cluster_centers[:, 0], label = 'Cluster 0')
     plt.plot(np.arange(0, 20), cluster_centers[:, 1], label = 'Cluster 1')
     plt.plot(np.arange(0, 20), cluster_centers[:, 2], label = 'Cluster 2')
-    #add this for k = 4
     plt.plot(np.arange(0, 20), cluster_centers[:, 3], label = 'Cluster 3')
-    #add this for k = 5
-    # plt.plot(np.arange(0, 20), cluster_centers[:, 4], label = 'Cluster 4')
     plt.legend()
     plt.grid()
     plt.xticks(np.arange(0, 20), labels, rotation=70)
